@@ -4,7 +4,9 @@
  * Vite proxies /api/* to http://localhost:5000 in development.
  */
 
-const BASE_URL = '/api'
+const BASE_URL = import.meta.env.PROD 
+  ? 'https://aiinterveiwsimulator-1.onrender.com/api' 
+  : '/api'
 
 /**
  * Generic fetch wrapper with error handling and JSON parsing.
