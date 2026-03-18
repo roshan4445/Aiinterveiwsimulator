@@ -12,8 +12,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Allow cross-origin requests from the React frontend
-    CORS(app, resources={r"/api/*": {"origins": Config.CORS_ORIGINS}})
+    # Globally allow all cross-origin requests for the deployed Render backend
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Register all API route blueprints
     register_routes(app)
