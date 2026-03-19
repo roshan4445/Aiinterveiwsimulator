@@ -6,11 +6,14 @@ A full-stack interview simulator where the AI dynamically adapts questions based
 
 ## Features
 
-- **Adaptive questioning** — the AI reads your weaknesses and targets them in the next question
-- **Structured feedback** — rating (1–10), strengths, weaknesses, and a model answer per question
-- **Final performance report** — overall assessment, hiring recommendation, and personalised study plan
-- **Voice input** — optional browser-based speech recognition
-- **Graceful fallback** — works with dummy responses if Groq is unavailable
+- **Stage-based progression** — Interviews logically progress through Intro, Resume, Role Core, Pressure, and Final stages
+- **Gradual difficulty scaling** — Questions start easy and dynamically adapt, progressively scaling up in complexity
+- **Structured feedback** — Rating (1–10), strengths, weaknesses, and a model answer per question
+- **Competency Evaluation** — Core final metrics across Technical Knowledge, Communication, Problem Solving, and Confidence
+- **PDF Resume parsing** — AI automatically context-matches your specific projects against the chosen role directly from uploaded resumes
+- **Final performance report** — Overall assessment, hiring recommendation, and personalised study plan
+- **Voice integration** — Features Murf speech synthesis and browser-based speech recognition
+- **Graceful fallback** — Works robustly with fallback objects if underlying AI generation timeout limits are reached
 - **8 interview roles** — Frontend, Backend, Full Stack, DevOps, Data Science, PM, HR, Design
 
 ---
@@ -102,39 +105,48 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## API Reference
 
-All endpoints are `POST` and accept/return JSON.
+All endpoints act on POST requests and transport data using JSON objects.
 
 ### `POST /api/start`
-Initialise a new interview session.
+Initialise a new interview session and establish the first stage.
 
 **Request:**
 ```json
-{ "role": "Frontend Developer" }
+{ 
+  "role": "Frontend Developer",
+  "name": "Alex",
+  "resume_text": "Passionate Software Developer with..."
+}
 ```
 
 **Response:**
 ```json
 {
   "success": true,
-  "question": "Tell me about yourself...",
+  "question": "Hi Alex, could you briefly introduce yourself?",
+  "audio": "...",
   "question_number": 1,
-  "total_questions": 3,
-  "role": "Frontend Developer"
+  "total_questions": 7,
+  "role": "Frontend Developer",
+  "stage": "intro"
 }
 ```
 
 ---
 
 ### `POST /api/next`
-Submit an answer; receive feedback and the next adaptive question.
+Submit an answer to receive structured feedback, adaptive text, audio output, and dynamic stage routing.
 
 **Request:**
 ```json
 {
   "role": "Frontend Developer",
+  "name": "Alex",
+  "resume_text": "...",
   "question": "...",
   "answer": "...",
   "question_number": 1,
+  "stage": "intro",
   "history": []
 }
 ```
@@ -147,17 +159,22 @@ Submit an answer; receive feedback and the next adaptive question.
     "rating": 7,
     "strengths": ["..."],
     "weaknesses": ["..."],
-    "improved_answer": "..."
+    "improved_answer": "...",
+    "tone": "neutral",
+    "focus_area": "experience"
   },
   "next_question": "Can you elaborate on...",
-  "is_final": false
+  "decision": "continue",
+  "audio": "...",
+  "is_final": false,
+  "stage": "resume"
 }
 ```
 
 ---
 
 ### `POST /api/report`
-Generate the final performance report.
+Generate the final holistic performance report consisting of all 7 metrics.
 
 **Request:**
 ```json
@@ -167,6 +184,8 @@ Generate the final performance report.
     {
       "question": "...",
       "answer": "...",
+      "questionNumber": 1,
+      "stage": "intro",
       "feedback": { "rating": 7, "strengths": [], "weaknesses": [], "improved_answer": "" }
     }
   ]
@@ -179,6 +198,12 @@ Generate the final performance report.
   "success": true,
   "report": {
     "overall_assessment": "...",
+    "metrics": {
+      "technical_knowledge": 8,
+      "communication": 7,
+      "problem_solving": 8,
+      "confidence": 6
+    },
     "top_strengths": [],
     "areas_to_improve": [],
     "hiring_recommendation": "Hire",
@@ -197,16 +222,19 @@ Generate the final performance report.
 |---|---|---|
 | `GROQ_API_KEY` | `backend/config.py` | Your Groq API key |
 | `GROQ_MODEL` | `backend/config.py` | LLM model (default: `llama3-8b-8192`) |
-| `MAX_QUESTIONS` | `backend/config.py` | Questions per interview (default: 3) |
+| `MAX_QUESTIONS` | `backend/config.py` | Questions per interview (default: 7) |
 | `CORS_ORIGINS` | `backend/config.py` | Allowed frontend origins |
 
 ---
 
-## How Adaptive Logic Works
+## How Adaptive Flow Logic Works
 
-1. User answers Q1 → AI extracts `weaknesses: ["lacks concrete examples", "no metrics mentioned"]`
-2. Q2 is generated to directly probe those gaps: *"Walk me through a specific project where you can give concrete metrics on impact…"*
-3. Q2 answer + Q1 weaknesses feed into Q3 prompt — the AI compounds insights across the full history
-4. Final report synthesises all 3 sessions into holistic feedback
+The entire flow is powered by a heavily detailed, stateful prompt algorithm structured into the following transitions:
 
-**Single API call per question** — feedback AND next question are generated in one Groq request for speed.
+1. **Intro:** Warm-up questions, strictly basic (e.g. "Tell me about yourself").
+2. **Resume:** Tailored context extraction. The AI connects candidate resume points to the exact role applying for.
+3. **Role Core:** Dominates 60% of the interview. The AI forces a structured 3-tier difficulty climb (Basic Definition → Practical Usage → Advanced Design/Optimization).
+4. **Pressure:** Hardcore edge-cases designed to stress-test their fundamental knowledge.
+5. **Final Stage:** Graceful wind-down and interview termination logic natively caught automatically if bounds are exceeded.
+
+**Final assessment computation** takes all historic sessions and extracts competency grading (`Technical Knowledge`, `Communication`, `Problem Solving`, `Confidence`).
