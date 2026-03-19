@@ -21,9 +21,7 @@ def _call_groq(messages: list, temperature: float = 0.7) -> str:
         stream=False,
     )
 
-    full_response = ""
-    for chunk in completion:
-        full_response += chunk.choices[0].delta.content or ""
+    full_response = completion.choices[0].message.content or ""
 
     return full_response
 
@@ -149,6 +147,7 @@ def evaluate_answer_and_next_question(
         ]
 
         raw = _call_groq(messages)
+        print("🔥 RAW RESPONSE:", raw)
         result = _extract_json(raw)
 
         # Safely parse score if AI returns something like "8/10"
@@ -275,6 +274,7 @@ Return JSON:
         ]
 
         raw = _call_groq(messages)
+        print("🔥 RAW RESPONSE:", raw)
         return _extract_json(raw)
 
     except Exception:
