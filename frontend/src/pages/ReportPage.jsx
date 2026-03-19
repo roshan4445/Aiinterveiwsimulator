@@ -26,6 +26,21 @@ function ScoreBar({ label, value }) {
   )
 }
 
+function MetricBar({ label, value }) {
+  const safeVal = value || 0
+  const pct = (safeVal / 10) * 100
+  const color = safeVal >= 8 ? '#3a7d5c' : safeVal >= 6 ? '#9a6e20' : '#b84040'
+  return (
+    <div className={styles.metricBarRow}>
+      <span className={styles.metricBarLabel}>{label}</span>
+      <div className={styles.scoreBarTrack}>
+        <div className={styles.scoreBarFill} style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <span className={styles.scoreBarVal} style={{ color }}>{safeVal}/10</span>
+    </div>
+  )
+}
+
 export default function ReportPage({ phase, role, sessions, report, onRestart }) {
   const isLoading = phase === PHASES.REPORT_LOADING
 
@@ -95,6 +110,22 @@ export default function ReportPage({ phase, role, sessions, report, onRestart })
               {report.recommendation_reason && (
                 <p className={styles.recReason}>{report.recommendation_reason}</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Competency Metrics Block */}
+        {report?.metrics && !report.fallback && (
+          <div className={`${styles.summaryCard} anim-fade-up`} style={{ animationDelay: '0.17s' }}>
+            <div className={styles.summaryHead}>
+              <span className={styles.summaryDot} style={{ background: '#9a6e20' }} />
+              <span className={styles.summaryTitle}>Competency Evaluation</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+              <MetricBar label="Technical Knowledge" value={report.metrics.technical_knowledge} />
+              <MetricBar label="Communication" value={report.metrics.communication} />
+              <MetricBar label="Problem Solving" value={report.metrics.problem_solving} />
+              <MetricBar label="Confidence" value={report.metrics.confidence} />
             </div>
           </div>
         )}

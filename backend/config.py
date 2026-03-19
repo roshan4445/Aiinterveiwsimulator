@@ -33,7 +33,7 @@ class Config:
     DEBUG = False
 
     # Number of interview questions (keep low to reduce API usage)
-    MAX_QUESTIONS = 3
+    MAX_QUESTIONS = 7
 
     # Comma-separated list of allowed CORS origins
     CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")

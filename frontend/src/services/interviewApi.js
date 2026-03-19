@@ -43,10 +43,10 @@ export async function startInterview({ role, name, resumeText }) {
 
 /**
  * Submit an answer and receive feedback + next question.
- * @param {{ role, name, resumeText, question, answer, question_number, history }} params
- * @returns {{ feedback: object, next_question: string, is_final: boolean }}
+ * @param {{ role, name, resumeText, question, answer, questionNumber, history, stage }} params
+ * @returns {{ feedback: object, next_question: string, is_final: boolean, stage: string }}
  */
-export async function submitAnswer({ role, name, resumeText, question, answer, questionNumber, history }) {
+export async function submitAnswer({ role, name, resumeText, question, answer, questionNumber, history, stage }) {
   return request('/next', {
     role,
     name,
@@ -54,6 +54,7 @@ export async function submitAnswer({ role, name, resumeText, question, answer, q
     question,
     answer,
     question_number: questionNumber,
+    stage,
     history: history.map(s => ({
       question: s.question,
       answer: s.answer,

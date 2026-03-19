@@ -42,6 +42,7 @@ def start_interview():
         "question_number": 1,
         "total_questions": Config.MAX_QUESTIONS,
         "role": role,
+        "stage": "intro"
     })
 
 
@@ -60,6 +61,8 @@ def next_question():
     question_number = data.get("question_number", 1)
     history = data.get("history", [])
 
+    stage = data.get("stage", "intro")
+
     if not question or not answer:
         return jsonify({"success": False, "error": "Question and answer are required."}), 400
 
@@ -69,7 +72,8 @@ def next_question():
         resume_text=resume_text,
         question=question,
         answer=answer,
-        history=history
+        history=history,
+        current_stage=stage
     )
 
     decision = result.get("decision", "continue")
@@ -87,6 +91,7 @@ def next_question():
         "decision": decision,
         "audio": audio_base64,
         "is_final": is_final,
+        "stage": result.get("next_stage", stage)
     })
 
 

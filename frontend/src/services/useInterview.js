@@ -16,7 +16,7 @@ export const PHASES = {
   REPORT: 'report',
 }
 
-const TOTAL_QUESTIONS = 3
+const TOTAL_QUESTIONS = 7
 
 export function useInterview() {
   const [phase, setPhase] = useState(PHASES.SETUP)
@@ -27,6 +27,7 @@ export function useInterview() {
   // Current question being answered
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [questionNumber, setQuestionNumber] = useState(0)
+  const [stage, setStage] = useState('intro')
 
   // Completed sessions: [{ question, answer, feedback }]
   const [sessions, setSessions] = useState([])
@@ -73,6 +74,7 @@ export function useInterview() {
       const data = await startInterview({ role: selectedRole.label, name: validName, resumeText })
       setCurrentQuestion(data.question)
       setQuestionNumber(1)
+      setStage(data.stage || 'intro')
       setPhase(PHASES.INTERVIEW)
       playAudio(data.audio)
     } catch (err) {
@@ -94,6 +96,7 @@ export function useInterview() {
         answer,
         questionNumber,
         history: sessions,
+        stage: stage,
       })
 
       const newSession = {
@@ -101,6 +104,7 @@ export function useInterview() {
         answer,
         feedback: data.feedback,
         questionNumber,
+        stage: stage,
       }
 
       const updatedSessions = [...sessions, newSession]
@@ -113,7 +117,7 @@ export function useInterview() {
       if (isEnd) {
         setPhase(PHASES.REPORT_LOADING)
         try {
-          const reportData = await generateReport(role.label, updatedSessions)
+          const reportData = await generateReport({ role: role.label, sessions: updatedSessions })
           setReport(reportData.report)
           setPhase(PHASES.REPORT)
         } catch (err) {
@@ -124,6 +128,7 @@ export function useInterview() {
         // Automatically move to the next question
         setCurrentQuestion(data.next_question)
         setQuestionNumber(n => n + 1)
+        if (data.stage) setStage(data.stage)
         setPendingFeedback(null)
         setNextQuestion('')
         setPhase(PHASES.INTERVIEW)
@@ -147,6 +152,7 @@ export function useInterview() {
     setResumeText('')
     setCurrentQuestion('')
     setQuestionNumber(0)
+    setStage('intro')
     setSessions([])
     setPendingFeedback(null)
     setNextQuestion('')
@@ -162,7 +168,7 @@ export function useInterview() {
     }
     setPhase(PHASES.REPORT_LOADING)
     try {
-      const data = await generateReport(role.label, sessions)
+      const data = await generateReport({ role: role.label, sessions })
       setReport(data.report)
       setPhase(PHASES.REPORT)
     } catch (err) {
@@ -178,6 +184,7 @@ export function useInterview() {
     candidateName,
     currentQuestion,
     questionNumber,
+    stage,
     totalQuestions: TOTAL_QUESTIONS,
     sessions,
     pendingFeedback,
