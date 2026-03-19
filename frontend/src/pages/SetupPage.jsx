@@ -3,14 +3,14 @@ import { parsePdfResume } from '../services/interviewApi'
 import styles from './SetupPage.module.css'
 
 const ROLES = [
-  { id: 'frontend',    label: 'Frontend Developer',  icon: '◈', description: 'React, CSS, browser APIs' },
-  { id: 'backend',     label: 'Backend Developer',   icon: '⬡', description: 'APIs, databases, systems' },
-  { id: 'fullstack',   label: 'Full Stack',          icon: '◎', description: 'End-to-end engineering' },
-  { id: 'devops',      label: 'DevOps Engineer',     icon: '⬢', description: 'CI/CD, cloud infra' },
-  { id: 'datascience', label: 'Data Scientist',      icon: '◇', description: 'ML, stats, analytics' },
-  { id: 'pm',          label: 'Product Manager',     icon: '◐', description: 'Roadmaps & strategy' },
-  { id: 'hr',          label: 'HR Manager',          icon: '◉', description: 'People ops & culture' },
-  { id: 'design',      label: 'UI/UX Designer',      icon: '◑', description: 'Research & systems' },
+  { id: 'frontend',    label: 'Frontend Dev',      icon: '◈', description: 'React, CSS, browser APIs' },
+  { id: 'backend',     label: 'Backend Dev',        icon: '⬡', description: 'APIs, databases, systems' },
+  { id: 'fullstack',   label: 'Full Stack',         icon: '◎', description: 'End-to-end engineering' },
+  { id: 'devops',      label: 'DevOps Engineer',    icon: '⬢', description: 'CI/CD, cloud infra' },
+  { id: 'datascience', label: 'Data Scientist',     icon: '◇', description: 'ML, stats, analytics' },
+  { id: 'pm',          label: 'Product Manager',    icon: '◐', description: 'Roadmaps & strategy' },
+  { id: 'hr',          label: 'HR Manager',         icon: '◉', description: 'People ops & culture' },
+  { id: 'design',      label: 'UI/UX Designer',     icon: '◑', description: 'Research & systems' },
 ]
 
 export default function SetupPage({ onStart, isLoading }) {
@@ -22,10 +22,7 @@ export default function SetupPage({ onStart, isLoading }) {
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
-    if (!file) {
-      setResumeText('')
-      return
-    }
+    if (!file) { setResumeText(''); return }
     setUploadingResume(true)
     setUploadError('')
     try {
@@ -43,24 +40,30 @@ export default function SetupPage({ onStart, isLoading }) {
     <div className={styles.page}>
       <div className={styles.container}>
 
-        {/* Header */}
-        <div className={`${styles.header} anim-fade-up`}>
-          <div className={styles.eyebrow}>
-            <span className={styles.eyebrowLine} />
-            Simulate a Real Interview
-            <span className={styles.eyebrowLine} />
-          </div>
+        {/* Eyebrow badge */}
+        <div className={`${styles.eyebrowWrap} anim-fade-up`}>
+          <span className={styles.eyebrow}>
+            <span className={styles.eyebrowDot} />
+            AI-Powered Interview Simulator
+          </span>
+        </div>
+
+        {/* Hero */}
+        <div className={`${styles.header} anim-fade-up`} style={{ animationDelay: '0.06s' }}>
           <h1 className={styles.title}>
-            Practice with<br /><em className={styles.titleItalic}>intention.</em>
+            Ace your<br />next<br />
+            <span className={styles.titleAccent}>interview.</span>
           </h1>
           <p className={styles.subtitle}>
-            Answer questions, get evaluated, and face follow-ups like a real interview
+            Answer adaptive questions, get instant AI feedback,<br />
+            and land your dream role.
           </p>
         </div>
 
-        {/* User Info & Resume section */}
-        <div className={`${styles.inputsSection} anim-fade-up`}>
+        {/* Name + Resume */}
+        <div className={`${styles.inputsSection} anim-fade-up`} style={{ animationDelay: '0.12s' }}>
           <input
+            id="candidate-name"
             type="text"
             className={styles.nameInput}
             placeholder="Your Name (Required)"
@@ -68,8 +71,9 @@ export default function SetupPage({ onStart, isLoading }) {
             onChange={e => setName(e.target.value)}
           />
           <div className={styles.fileUploadWrapper}>
-            <p className={styles.uploadLabel}>Upload resume (Optional PDF + for personalized questioning)</p>
+            <p className={styles.uploadLabel}>Upload resume (Optional PDF for personalized questions)</p>
             <input
+              id="resume-upload"
               type="file"
               accept=".pdf"
               className={styles.fileInput}
@@ -83,12 +87,13 @@ export default function SetupPage({ onStart, isLoading }) {
         </div>
 
         {/* Role picker */}
-        <div className="anim-fade-up" style={{ animationDelay: '0.08s' }}>
-          <p className={styles.sectionLabel}>Select Role → (Optional) Resume → Start Interview</p>
+        <div className="anim-fade-up" style={{ animationDelay: '0.18s' }}>
+          <p className={styles.sectionLabel}>01 — Choose your interview role</p>
           <div className={styles.grid}>
             {ROLES.map(role => (
               <button
                 key={role.id}
+                id={`role-${role.id}`}
                 className={`${styles.roleCard} ${selected?.id === role.id ? styles.roleCardActive : ''}`}
                 onClick={() => setSelected(role)}
               >
@@ -101,8 +106,9 @@ export default function SetupPage({ onStart, isLoading }) {
         </div>
 
         {/* CTA */}
-        <div className={`${styles.cta} anim-fade-up`} style={{ animationDelay: '0.16s' }}>
+        <div className={`${styles.cta} anim-fade-up`} style={{ animationDelay: '0.24s' }}>
           <button
+            id="begin-interview-btn"
             className={styles.startBtn}
             onClick={() => selected && name && !isLoading && onStart({ role: selected, name, resumeText })}
             disabled={!selected || !name || isLoading}
@@ -113,7 +119,7 @@ export default function SetupPage({ onStart, isLoading }) {
               </span>
             ) : (
               <>
-                Start Interview
+                Begin Interview
                 {selected && <span className={styles.btnArrow}>→</span>}
               </>
             )}

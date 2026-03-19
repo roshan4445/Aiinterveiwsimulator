@@ -1,127 +1,234 @@
+/* ── Page wrapper ─────────────────────────────────────────────────── */
 .page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
-  background: var(--cream);
+  padding: 48px 24px 64px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Decorative background shapes */
+/* Animated background grid */
 .page::before {
   content: '';
   position: fixed;
-  top: -120px;
-  right: -160px;
-  width: 520px;
-  height: 520px;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  animation: gridPulse 6s ease-in-out infinite;
+}
+
+/* Top-right glow blob */
+.page::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(196,96,58,0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 65%);
   pointer-events: none;
 }
 
 .container {
   width: 100%;
-  max-width: 680px;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hero badge ─────────────────────────────────────────────────────── */
+.eyebrowWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  padding: 6px 16px;
+  border-radius: var(--r-pill);
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  animation: blink 2s ease-in-out infinite;
 }
 
 /* ── Header ─────────────────────────────────────────────────────────── */
 .header { text-align: center; }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 20px;
-}
-
-.eyebrowLine {
-  width: 24px;
-  height: 1px;
-  background: var(--accent-mid);
-}
-
 .title {
-  font-family: var(--font-display);
-  font-size: clamp(44px, 8vw, 72px);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(52px, 10vw, 88px);
   font-weight: 900;
   line-height: 1.0;
-  letter-spacing: -0.03em;
-  color: var(--ink-900);
-  margin-bottom: 10px;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  margin-bottom: 6px;
 }
 
-.titleItalic {
-  font-style: italic;
-  color: var(--accent);
+.titleAccent {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .subtitle {
-  font-size: 16px;
-  color: var(--ink-300);
+  font-size: 15px;
+  color: var(--text-secondary);
   line-height: 1.7;
-  max-width: 420px;
-  margin: 0 auto;
-  font-weight: 300;
+  max-width: 400px;
+  margin: 16px auto 0;
+  font-weight: 400;
 }
 
-/* ── Role section ────────────────────────────────────────────────────── */
+/* ── Inputs Section ─────────────────────────────────────────────────── */
+.inputsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.nameInput {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.nameInput::placeholder { color: var(--text-muted); }
+
+.nameInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.fileUploadWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  padding: 16px 20px;
+  border-radius: var(--r-lg);
+  transition: border-color 0.2s;
+}
+
+.fileUploadWrapper:hover { border-color: var(--border-hover); }
+
+.uploadLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.fileInput {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.fileInput::file-selector-button {
+  background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  margin-right: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.fileInput::file-selector-button:hover { opacity: 0.85; }
+
+.fileStatusTxt    { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.fileStatusTxtGreen { font-size: 12px; color: var(--green); margin-top: 2px; }
+.fileStatusTxtRed   { font-size: 12px; color: var(--red);   margin-top: 2px; }
+
+/* ── Role Grid ──────────────────────────────────────────────────────── */
 .sectionLabel {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-300);
-  margin-bottom: 14px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .roleCard {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  padding: 16px 15px;
-  background: var(--surface-0);
-  border: 1.5px solid var(--cream-border);
+  gap: 10px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: var(--r-lg);
   cursor: pointer;
   text-align: left;
   color: inherit;
   transition: all 0.18s var(--ease);
-  box-shadow: var(--shadow-xs);
 }
 
 .roleCard:hover {
-  border-color: var(--accent-mid);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
   transform: translateY(-2px);
 }
 
 .roleCard:active { transform: translateY(0); }
 
 .roleCardActive {
-  border-color: var(--accent) !important;
-  background: var(--accent-light) !important;
-  box-shadow: 0 0 0 3px var(--accent-glow), var(--shadow-sm) !important;
+  border-color: rgba(79,142,247,0.5) !important;
+  background: rgba(79,142,247,0.08) !important;
+  box-shadow: 0 0 0 1px rgba(79,142,247,0.3), inset 0 0 20px rgba(79,142,247,0.05) !important;
 }
 
 .roleIcon {
   font-size: 18px;
-  color: var(--ink-100);
+  color: var(--text-muted);
   line-height: 1;
   transition: color 0.18s;
 }
@@ -132,15 +239,15 @@
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink-700);
+  color: var(--text-primary);
   line-height: 1.25;
 }
 
 .roleDesc {
   font-size: 11px;
-  color: var(--ink-300);
-  line-height: 1.3;
-  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.35;
+  font-weight: 400;
 }
 
 /* ── CTA ─────────────────────────────────────────────────────────────── */
@@ -155,31 +262,31 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  padding: 17px 40px;
+  padding: 17px 52px;
   border-radius: var(--r-pill);
-  border: none;
+  border: 1px solid rgba(255,255,255,0.15);
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: all 0.2s var(--ease);
-  background: var(--ink-900);
-  color: var(--cream);
-  box-shadow: 0 4px 18px rgba(26,23,20,0.22), 0 1px 4px rgba(26,23,20,0.14);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  backdrop-filter: blur(12px);
 }
 
 .startBtn:hover:not(:disabled) {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+  border-color: transparent;
   box-shadow: var(--shadow-accent);
   transform: translateY(-2px);
 }
+
 .startBtn:active:not(:disabled) { transform: translateY(0); }
 
 .startBtn:disabled {
-  background: var(--cream-border);
-  color: var(--ink-100);
-  box-shadow: none;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -189,15 +296,9 @@
 }
 .startBtn:hover:not(:disabled) .btnArrow { transform: translateX(5px); }
 
-.btnLoader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
+.btnLoader  { display: flex; align-items: center; gap: 10px; }
 .btnDot {
-  width: 7px;
-  height: 7px;
+  width: 7px; height: 7px;
   border-radius: 50%;
   background: currentColor;
   animation: blink 1s ease-in-out infinite;
@@ -206,91 +307,12 @@
 .ctaHint {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-100);
-  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
   text-align: center;
 }
 
 .ctaDivider {
-  color: var(--cream-muted);
-  margin: 0 6px;
-}
-
-.inputsSection {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
-.nameInput, .resumeInput {
-  width: 100%;
-  padding: 16px;
-  border-radius: var(--r-md);
-  border: 1.5px solid var(--cream-border);
-  background: var(--surface-0);
-  font-family: var(--font-body);
-  font-size: 15px;
-  color: var(--ink-900);
-  transition: border-color 0.2s;
-}
-
-.fileUploadWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--surface-0);
-  border: 1.5px dashed var(--cream-border);
-  padding: 16px;
-  border-radius: var(--r-md);
-  transition: border-color 0.2s;
-}
-
-.fileUploadWrapper:hover {
-  border-color: var(--accent);
-}
-
-.uploadLabel {
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--ink-300);
-}
-
-.fileInput {
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--ink-700);
-}
-
-.fileInput::file-selector-button {
-  background: var(--ink-900);
-  color: var(--cream);
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--r-pill);
-  cursor: pointer;
-  margin-right: 12px;
-  transition: all 0.2s var(--ease);
-}
-
-.fileInput::file-selector-button:hover {
-  background: var(--accent);
-}
-
-.fileStatusTxt {
-  font-size: 12px;
-  color: var(--ink-300);
-  margin-top: 4px;
-}
-
-.fileStatusTxtGreen {
-  font-size: 12px;
-  color: #10B981;
-  margin-top: 4px;
-}
-
-.fileStatusTxtRed {
-  font-size: 12px;
-  color: #EF4444;
-  margin-top: 4px;
+  color: var(--border-hover);
+  margin: 0 8px;
 }
