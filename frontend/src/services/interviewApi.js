@@ -6,7 +6,7 @@
 
 
 const BASE_URL = import.meta.env.PROD 
-  ? 'https://aiinterveiwsimulator-1.onrender.com/api' 
+  ? 'https://aiinterveiwsimulator-3.onrender.com/api' 
   : '/api'
 
 /**
