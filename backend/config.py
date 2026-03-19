@@ -23,8 +23,7 @@ class Config:
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "YOUR_GROQ_API_KEY_HERE")
     MURF_API_KEY = os.environ.get("MURF_API_KEY", "")
 
-    # Groq model to use - llama3-8b-8192 is fast and capable
-    GROQ_MODEL = "llama3-8b-8192"
+    GROQ_MODEL = "llama-3.1-8b-instant"
 
     # Groq API base URL
     GROQ_BASE_URL = "https://api.groq.com/openai/v1/chat/completions"
