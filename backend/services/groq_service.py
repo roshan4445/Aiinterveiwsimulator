@@ -3,6 +3,10 @@ import re
 from groq import Groq
 from config import Config
 
+
+# ==============================
+# 🔹 GROQ CALL
+# ==============================
 def _call_groq(messages: list, temperature: float = 0.7) -> str:
     if Config.GROQ_API_KEY == "YOUR_GROQ_API_KEY_HERE" or not Config.GROQ_API_KEY:
         raise ValueError("Groq API key not configured.")
@@ -15,226 +19,269 @@ def _call_groq(messages: list, temperature: float = 0.7) -> str:
         max_completion_tokens=1024,
         top_p=1,
         stream=True,
-        stop=None
     )
 
     full_response = ""
     for chunk in completion:
         full_response += chunk.choices[0].delta.content or ""
 
-    print("\n" + "="*50)
-    print("🤖 AI GENERATED RAW RESPONSE:")
-    print("="*50)
-    print(full_response)
-    print("="*50 + "\n")
-
     return full_response
 
 
+# ==============================
+# 🔹 SAFE JSON EXTRACTOR
+# ==============================
 def _extract_json(text: str) -> dict:
     cleaned = re.sub(r"```(?:json)?", "", text).replace("```", "").strip()
+
     try:
         return json.loads(cleaned)
     except:
-        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+        match = re.search(r"\{[\s\S]*\}", cleaned)
         if match:
-             return json.loads(match.group())
+            try:
+                return json.loads(match.group())
+            except:
+                pass
+
     raise ValueError("Invalid JSON response")
 
 
+# ==============================
+# 🔹 CHECK SAME QUESTION
+# ==============================
+def _is_similar(q1: str, q2: str) -> bool:
+    if not q1 or not q2:
+        return False
+    return q1.strip().lower() == q2.strip().lower()
+
+
+# ==============================
+# 🔹 PROMPT BUILDER (SMART FLOW)
+# ==============================
 def _build_evaluation_prompt(role, name, resume_text, question, answer, history, current_stage):
     questions_count = len(history) + 1 if history else 1
-    history_context = ""
-    if history:
-        history_lines = []
-        for i, h in enumerate(history, 1):
-            history_lines.append(f"Q{i}: {h.get('question')}\nAnswer: {h.get('answer')}\nWeaknesses: {', '.join(h.get('weaknesses', []))}")
-        history_context = "PREVIOUS INTERVIEW HISTORY:\n" + "\n\n".join(history_lines) + "\n\n"
 
-    resume_context = ""
-    if resume_text:
-        resume_context = f"CANDIDATE'S RESUME TEXT:\n{resume_text[:2000]}\n\n(Use this to ask authentic, personalized context questions about their past projects, tech stack, and experience. Verify their authenticity.)\n\n"
+    resume_context = f"CANDIDATE RESUME:\n{resume_text[:1500]}\n\n" if resume_text else ""
 
-    return f"""You are a professional, neutral, and slightly challenging technical interviewer.
-You are interviewing '{name}' for the role of '{role}'.
+    return f"""
+You are a professional technical interviewer.
 
-CURRENT STAGE: '{current_stage}'
-QUESTION COUNT: {questions_count}
-MAXIMUM QUESTIONS: 7
+ROLE: {role}
+STAGE: {current_stage}
+QUESTION NUMBER: {questions_count}
 
-STRICT FLOW RULES & DIFFICULTY PROGRESSION:
-- "intro" stage: Very easy, conversational. Ask "Tell me about yourself" -> 1 intelligent follow-up. MUST move to "resume".
-- "resume" stage: Easy to moderate. Based on candidate's projects/experience. -> MUST move to "role_core" after 1-2 questions.
-- "role_core" stage (MOST IMPORTANT): Must dominate interview (60-70%). 
-  * Progressive difficulty:
-    - 1st question -> BASIC (definition-level)
-    - 2nd question -> INTERMEDIATE (practical usage)
-    - 3rd question -> ADVANCED (design / optimization)
-- "pressure" stage: Advanced + edge cases. Ask failure scenarios.
-- "final" stage: Wrap up interview and prepare to end.
+INTERVIEW FLOW RULES:
 
-ROLE ALIGNMENT & REALISTIC CONSTRAINTS:
-- Questions MUST strictly match the '{role}' role.
-- Convert resume-based topics into role-based questions (e.g., Instead of "How did you test APIs?", ask "How would you design and test an API?").
-- DO NOT ask advanced/system design questions early.
-- DO NOT jump directly to scaling/distributed systems.
-- Always start with standard interview questions and build difficulty step-by-step.
-- Prefer practical, real-world questions over theoretical abstract ones.
+1. INTRO:
+- Ask "Tell me about yourself"
+- Then 1 simple follow-up
+- Move to RESUME
 
-{resume_context}{history_context}CURRENT QUESTION:
-"{question}"
+2. RESUME:
+- Ask about projects ONLY
+- Example: "Explain one of your projects"
+- DO NOT ask approach immediately
 
-CANDIDATE'S ANSWER:
-"{answer}"
+3. ROLE_CORE:
+- Ask based on project
+- Order:
+  - Basic
+  - Intermediate
+  - Advanced
 
-STRICT INSTRUCTIONS:
-1. Act like a real interviewer. Be neutral and focused.
-2. Based on the candidate's answer and current stage, decide:
-   - Should you ask a follow-up question? ("follow_up")
-   - Move to next question? ("next")
-   - End the interview? ("end")
-3. You MUST ask at least 5 main questions before ending the interview. Do NOT "end" before 5 questions.
-4. Provide an honest score from 0-10.
-5. Return your response ONLY as valid JSON matching the exact structure below.
+4. STRICT RULES:
+- NEVER repeat questions
+- NEVER jump to advanced early
+- ONLY ask "approach" AFTER project explanation
+- Questions MUST relate to resume or previous answers
 
-Required JSON Output Format:
+{resume_context}
+
+CURRENT QUESTION:
+{question}
+
+ANSWER:
+{answer}
+
+Return ONLY JSON:
 {{
-  "score": <number 0-10>,
-  "strengths": ["<observation 1>"],
-  "weaknesses": ["<clear gap 1>", "<clear gap 2>"],
-  "improvement": "<Concise better answer without tutoring or sugar-coating>",
+  "score": 0-10,
+  "strengths": [],
+  "weaknesses": [],
+  "improvement": "",
   "action": "follow_up | next | end",
-  "next_question": "<only if follow_up or next, else empty string>",
+  "next_question": "",
   "next_stage": "intro | resume | role_core | pressure | final"
 }}
 """
 
 
+# ==============================
+# 🔥 MAIN FUNCTION
+# ==============================
 def evaluate_answer_and_next_question(
     role, name, resume_text, question, answer, history, current_stage
 ):
     try:
+        # ✅ 1. HANDLE WEAK ANSWERS
+        if not answer or len(answer.strip()) < 10:
+            return {
+                "feedback": {
+                    "rating": 2,
+                    "strengths": [],
+                    "weaknesses": ["Answer too short or unclear"],
+                    "improved_answer": "Give a proper structured answer."
+                },
+                "next_question": question,
+                "decision": "continue",
+                "next_stage": current_stage
+            }
+
+        # ✅ 2. CALL AI
         prompt = _build_evaluation_prompt(
             role, name, resume_text, question, answer, history, current_stage
         )
 
         messages = [
-            {"role": "system", "content": "You are a professional technical interviewer simulator. Return ONLY strictly formatted JSON."},
+            {"role": "system", "content": "Return ONLY JSON."},
             {"role": "user", "content": prompt},
         ]
 
         raw = _call_groq(messages)
         result = _extract_json(raw)
 
+        score = int(result.get("score", 5))
         action = result.get("action", "next").lower()
-        next_stage_val = result.get("next_stage") or current_stage
-        next_stage = str(next_stage_val).lower()
-        
-        questions = len(history) + 1 if history else 1
-        
-        # (C) FORCE FINAL STAGE
-        if questions >= 5 and current_stage != "final":
+        next_question = result.get("next_question", "").strip()
+        next_stage = str(result.get("next_stage", current_stage)).lower()
+
+        questions = len(history) + 1
+
+        # ✅ 3. FOLLOW-UP LIMIT (STOP LOOP)
+        follow_up_count = 0
+        if history:
+            follow_up_count = history[-1].get("follow_up_count", 0)
+
+        if action == "follow_up":
+            follow_up_count += 1
+            if follow_up_count > 1:
+                action = "next"
+
+        # ✅ 4. PREVENT SAME QUESTION
+        if history and next_question:
+            last_q = history[-1].get("question", "").strip().lower()
+            if next_question.lower() == last_q:
+                action = "next"
+
+        # ✅ 5. SAFE FALLBACK QUESTION
+        if not next_question or len(next_question) < 5:
+            if current_stage == "intro":
+                next_question = "Tell me about yourself."
+            elif current_stage == "resume":
+                next_question = "Can you explain one of your projects?"
+            else:
+                next_question = "How did you implement this in your project?"
+
+        # ✅ 6. CONTROL STAGE FLOW
+        if current_stage == "intro" and questions >= 2:
+            next_stage = "resume"
+
+        elif current_stage == "resume" and questions >= 3:
+            next_stage = "role_core"
+
+        elif current_stage == "role_core" and questions >= 5:
             next_stage = "final"
-            
-        # (A) HARD LIMIT
+
         if questions >= 7:
             action = "end"
             next_stage = "final"
-            
-        # (B) & (D) DECISION LOGIC
-        valid_end = action == "end" and next_stage == "final" and questions >= 5
-        
-        if valid_end:
-            decision = "end"
-        else:
-            decision = "continue"
+
+        # ✅ 7. FINAL DECISION
+        decision = "end" if action == "end" and questions >= 5 else "continue"
 
         feedback = {
-            "rating": int(result.get("score", result.get("rating", 5))),
+            "rating": score,
             "strengths": result.get("strengths", []),
             "weaknesses": result.get("weaknesses", []),
-            "improved_answer": result.get("improvement", result.get("improved_answer", "")),
-            "tone": result.get("tone", "neutral"),
-            "focus_area": result.get("focus_area", "")
+            "improved_answer": result.get("improvement", "")
         }
 
         return {
             "feedback": feedback,
-            "next_question": result.get("next_question", ""),
+            "next_question": next_question,
             "decision": decision,
             "next_stage": next_stage
         }
 
     except Exception as e:
-        print("[ERROR] Groq generation failed:", e)
+        print("[ERROR]", e)
+
         return {
             "feedback": {
-                "rating": 5,
-                "strengths": ["Answer provided"],
-                "weaknesses": ["Cannot evaluate deeply at this moment"],
-                "improved_answer": "Provide more specific details if possible.",
-                "tone": "neutral",
-                "focus_area": "general"
+                "rating": 4,
+                "strengths": ["Attempted answer"],
+                "weaknesses": ["Evaluation failed"],
+                "improved_answer": "Try answering clearly."
             },
-            "next_question": "Can you expand on your technical approach there?",
+            "next_question": "Let's move forward. Tell me about one of your projects.",
             "decision": "continue",
-            "next_stage": current_stage,
-            "fallback_used": True
+            "next_stage": "resume"
         }
 
 
+# ==============================
+# 🔹 FINAL REPORT
+# ==============================
 def generate_final_report(role: str, sessions: list) -> dict:
     try:
         session_lines = []
         for i, s in enumerate(sessions, 1):
             fb = s.get("feedback", {})
             session_lines.append(
-                f"Q{i}: {s.get('question', '')}\nAnswer: {s.get('answer', '')[:300]}\nRating: {fb.get('rating', 'N/A')}/10\nWeaknesses: {', '.join(fb.get('weaknesses', []))}"
+                f"Q{i}: {s.get('question')}\nAnswer: {s.get('answer')[:200]}\nRating: {fb.get('rating')}"
             )
-        sessions_text = "\n\n".join(session_lines)
 
-        prompt = f"""You are a senior {role} hiring manager writing a post-interview assessment based on the candidate's performance.
+        prompt = f"""
+You are a senior {role} hiring manager.
 
-COMPLETE INTERVIEW TRANSCRIPT:
-{sessions_text}
+{chr(10).join(session_lines)}
 
-Write a comprehensive, professional, and honest hiring assessment as ONLY valid JSON. Focus on real hiring parameters, do not sugarcoat weaknesses.
-
+Return JSON:
 {{
-  "overall_assessment": "<3-4 sentences holistically evaluating the candidate's practical performance>",
+  "overall_assessment": "",
   "metrics": {{
-    "technical_knowledge": <number 0-10>,
-    "communication": <number 0-10>,
-    "problem_solving": <number 0-10>,
-    "confidence": <number 0-10>
+    "technical_knowledge": 0,
+    "communication": 0,
+    "problem_solving": 0,
+    "confidence": 0
   }},
-  "top_strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
-  "areas_to_improve": ["<area 1>", "<area 2>", "<area 3>"],
-  "hiring_recommendation": "<one of: Strong Hire | Hire | Maybe | No Hire>",
-  "recommendation_reason": "<1-2 sentences strictly explaining the structural reasoning for the hiring decision>",
-  "study_plan": ["<Resource or actionable topic 1>", "<Actionable topic 2>"]
-}}"""
+  "top_strengths": [],
+  "areas_to_improve": [],
+  "hiring_recommendation": "",
+  "recommendation_reason": ""
+}}
+"""
+
         messages = [
-            {"role": "system", "content": "You are a strict, professional hiring manager. Output ONLY valid JSON."},
+            {"role": "system", "content": "Return ONLY JSON."},
             {"role": "user", "content": prompt},
         ]
+
         raw = _call_groq(messages)
         return _extract_json(raw)
 
-    except Exception as e:
-        print("[ERROR] Final report generation failed:", e)
+    except Exception:
         return {
-            "overall_assessment": "The interview concluded but dynamic report generation is unavailable.",
+            "overall_assessment": "Report unavailable",
             "metrics": {
                 "technical_knowledge": 5,
-                "communication": 6,
+                "communication": 5,
                 "problem_solving": 5,
                 "confidence": 5
             },
-            "top_strengths": ["Communicative"],
-            "areas_to_improve": ["Requires deeper evaluation"],
+            "top_strengths": [],
+            "areas_to_improve": [],
             "hiring_recommendation": "Maybe",
-            "recommendation_reason": "Fallback generated.",
-            "study_plan": ["Review system design", "Practice technical deep-dives"],
-            "fallback_used": True
+            "recommendation_reason": "Fallback"
         }
