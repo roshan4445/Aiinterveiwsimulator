@@ -22,7 +22,7 @@ def _call_groq(messages: list, temperature: float = 0.7) -> str:
     )
 
     full_response = completion.choices[0].message.content or ""
-
+    print("🔥 RAW RESPONSE:", full_response)
     return full_response
 
 
@@ -226,7 +226,7 @@ def evaluate_answer_and_next_question(
             "feedback": {
                 "rating": 4,
                 "strengths": ["Attempted answer"],
-                "weaknesses": ["Evaluation failed"],
+                "weaknesses": [f"Evaluation failed: {str(e)}"],
                 "improved_answer": "Try answering clearly."
             },
             "next_question": "Let's move forward. Tell me about one of your projects.",
