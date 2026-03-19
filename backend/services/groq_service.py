@@ -18,7 +18,7 @@ def _call_groq(messages: list, temperature: float = 0.7) -> str:
         temperature=temperature,
         max_completion_tokens=1024,
         top_p=1,
-        stream=True,
+        stream=False,
     )
 
     full_response = ""
