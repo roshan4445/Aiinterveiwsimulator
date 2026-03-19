@@ -13,7 +13,7 @@ def _call_groq(messages: list, temperature: float = 0.7) -> str:
 
     client = Groq(api_key=Config.GROQ_API_KEY)
     completion = client.chat.completions.create(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        model=Config.GROQ_MODEL,
         messages=messages,
         temperature=temperature,
         max_completion_tokens=1024,
@@ -151,7 +151,13 @@ def evaluate_answer_and_next_question(
         raw = _call_groq(messages)
         result = _extract_json(raw)
 
-        score = int(result.get("score", 5))
+        # Safely parse score if AI returns something like "8/10"
+        score_val = str(result.get("score", 5)).split('/')[0].strip()
+        try:
+            score = int(score_val)
+        except ValueError:
+            score = 5
+
         action = result.get("action", "next").lower()
         next_question = result.get("next_question", "").strip()
         next_stage = str(result.get("next_stage", current_stage)).lower()
