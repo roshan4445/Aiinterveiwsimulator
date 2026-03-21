@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div id="logincontainer" class="flex flex-col justify-center items-center min-h-screen ">
+        <img src="https://img.freepik.com/free-vector/quiz-word-concept_23-2147852942.jpg?t=st=1741325287~exp=1741328887~hmac=016687a53a95e68b8bf74f71607084a15d8df53bfd850a2fd0cab23d9f9ae5f3&w=1060" class="w-[200px] mb-[20px]" />
+        <div class="bg-white shadow rounded-[10px] w-3/4 p-3">
+            <h1 class="text-[black] text-center text-[24px] font-[breeserif] font-400 mb-3">Welcome</h1>
+            <form id="details">
+                <div>
+                    <label for="name" class="text-[18px] font-[breeserif]">Name</label>
+                    <input type="text" class="w-full px-3 py-2 mt-3 border border-gray-300 rounded-md mb-[20px]" id="name" />
+                    <p id="errorname" class="text-[red]"></p>
+                </div>
+                <div>
+                    <label for="email" class="text-[18px] font-[breeserif]">Email</label>
+                    <input type="text" class="w-full px-3 py-2 mt-3 border border-gray-300 rounded-md" id="email" />
+                    <p id="erroremail" class="text-[red]"></p>
+                </div>
+                <div class="flex justify-center">
+                    <button class="bg-[blue] text-[white] h-[30px] w-[100px] rounded-[8px] mt-2" id="loginbtn">login</button>
+                </div>
+            </form>
+        </div>
+
+
+
+    </div>
+    <div id="customselection" class="bg-white  flex flex-col justify-center items-center min-h-screen hidden">
+        <div class="bg-white shadow w-3/4 ">
+            <div class="p-3">
+                <label for="questions_no" class="text-[black] font-[breeserif] font-300">HOW MANY QUESTIONS DO YOU WANT TO ANSWER</label>
+                <select class="w-full mt-3 px-3 py-3 bg-white border border-gray-300 rounded-md" id="numberofquestions">
+                    <option selected>5</option>
+                    <option>10</option>
+                    <option>20</option>
+                </select>
+            </div>
+            <div class="p-3">
+                <label for="level" class="text-[black] font-[breeserif] font-300">DIFFICULTY LEVEL</label>
+                <select class="w-full mt-3 px-3 py-3 bg-white border border-gray-300 rounded-md" id="difficulty">
+                    <option selected>easy</option>
+                    <option>medium</option>
+                    <option>hard</option>
+                </select>
+            </div>
+            <div class="p-3">
+                <label for="level" class="text-[black] font-[breeserif] font-300">SUBJECT</label>
+                <select class="w-full mt-3 px-3 py-3 bg-white border border-gray-300 rounded-md" id="subject">
+                    <option selected>python</option>
+                    <option>Cascading style sheets</option>
+                    <option>html</option>
+                    <option>javascript</option>
+                </select>
+            </div>
+            <div class="flex justify-center">
+                <button class="bg-[blue] h-[30px] w-[120px] text-white rounded-[10px] mb-3" id="taketest">Take Test</button>
+            </div>
+        </div>
+
+    </div>
+    <div id="quizcontainer" class="p-4 hidden">
+        <div class="flex justify-between">
+            <img src="https://img.freepik.com/free-photo/public-examination-preparation-concept_23-2149369895.jpg?t=st=1741328595~exp=1741332195~hmac=9f401b4647092fe9dd9b806a38f5b49e89e4ac172285e44a00be1fe5f0d88016&w=1800" class="w-[150px] mr-[20px] " />
+            <div>
+                <h1 id="displayname" class="text-[black] text-[18px] font-[breeserif]">name:</h1>
+
+                <p id="score" class="text-[black] text-[18px] font-[breeserif]"></p>
+            </div>
+
+        </div>
+        <div id="questionscontainer" class="flex flex-col justify-center <!-- items-center --> h-1/2 p-[20px]">
+            <div id="optionscontainer">
+
+            </div>
+
+        </div>
+        <button class="bg-[blue] w-[150px] h-[40px] rounded-[10px] text-[white] p-1" onclick="nextquestion()" id"nxtbtn">Next Question</button>
+    </div>
+
+
+</body>
+
+</html>
