@@ -34,6 +34,7 @@ export function useInterview() {
 
   // Feedback from last submission (shown before moving on)
   const [pendingFeedback, setPendingFeedback] = useState(null)
+  const [acknowledgment, setAcknowledgment] = useState('')  // AI's conversational reply
   const [nextQuestion, setNextQuestion] = useState('')
   const [nextAudio, setNextAudio] = useState(null)
   const [isAiSpeaking, setIsAiSpeaking] = useState(false)
@@ -125,7 +126,8 @@ export function useInterview() {
           setPhase(PHASES.REPORT)
         }
       } else {
-        // Automatically move to the next question
+        // Skip FEEDBACK phase — go straight to next question like a real interview
+        setAcknowledgment(data.acknowledgment || '')
         setCurrentQuestion(data.next_question)
         setQuestionNumber(n => n + 1)
         if (data.stage) setStage(data.stage)
@@ -188,6 +190,7 @@ export function useInterview() {
     totalQuestions: TOTAL_QUESTIONS,
     sessions,
     pendingFeedback,
+    acknowledgment,
     report,
     error,
 

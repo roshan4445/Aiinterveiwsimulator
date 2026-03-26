@@ -19,6 +19,7 @@ export default function App() {
     totalQuestions,
     sessions,
     pendingFeedback,
+    acknowledgment,
     report,
     error,
     handleStart,
@@ -52,7 +53,7 @@ export default function App() {
     )
   }
 
-  // All other phases (INTERVIEW, LOADING, FEEDBACK) render InterviewPage
+  // All other phases (INTERVIEW, LOADING) render InterviewPage
   return (
     <InterviewPage
       phase={phase}
@@ -61,7 +62,9 @@ export default function App() {
       currentQuestion={currentQuestion}
       questionNumber={questionNumber}
       totalQuestions={totalQuestions}
+      sessions={sessions}
       pendingFeedback={pendingFeedback}
+      acknowledgment={acknowledgment}
       error={error}
       onSubmit={handleSubmitAnswer}
       onContinue={handleContinue}

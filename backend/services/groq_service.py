@@ -63,11 +63,12 @@ def _build_evaluation_prompt(role, name, resume_text, question, answer, history,
     resume_context = f"CANDIDATE RESUME:\n{resume_text[:1500]}\n\n" if resume_text else ""
 
     return f"""
-You are a professional technical interviewer.
+You are a professional technical interviewer having a friendly, natural conversation with the candidate, {name}.
 
 ROLE: {role}
 STAGE: {current_stage}
 QUESTION NUMBER: {questions_count}
+CANDIDATE NAME: {name}
 
 INTERVIEW FLOW RULES:
 
@@ -109,7 +110,8 @@ Return ONLY JSON:
   "weaknesses": [],
   "improvement": "",
   "action": "follow_up | next | end",
-  "next_question": "",
+  "acknowledgment": "A natural, highly conversational 1-sentence reaction to the candidate's specific answer. You MUST sound like a human actively listening. Address them by their name ({name}) occasionally. Reference exactly what they just said. Example: 'Ok {name}, that sounds like a challenging debugging session.' or 'I see, so you chose React for the frontend.' DO NOT just say 'Great, thanks.'",
+  "next_question": "The actual question you want to ask next. Make it conversational and natural.",
   "next_stage": "intro | resume | role_core | pressure | final"
 }}
 """
@@ -205,6 +207,11 @@ def evaluate_answer_and_next_question(
         # ✅ 7. FINAL DECISION
         decision = "end" if action == "end" and questions >= 5 else "continue"
 
+        acknowledgment = result.get("acknowledgment", "Got it, thanks!").strip()
+        # Keep it short — strip anything over 120 chars
+        if len(acknowledgment) > 120:
+            acknowledgment = acknowledgment[:117] + "..."
+
         feedback = {
             "rating": score,
             "strengths": result.get("strengths", []),
@@ -214,6 +221,7 @@ def evaluate_answer_and_next_question(
 
         return {
             "feedback": feedback,
+            "acknowledgment": acknowledgment,
             "next_question": next_question,
             "decision": decision,
             "next_stage": next_stage
@@ -229,6 +237,7 @@ def evaluate_answer_and_next_question(
                 "weaknesses": [f"Evaluation failed: {str(e)}"],
                 "improved_answer": "Try answering clearly."
             },
+            "acknowledgment": "Thanks for your answer!",
             "next_question": "Let's move forward. Tell me about one of your projects.",
             "decision": "continue",
             "next_stage": "resume"

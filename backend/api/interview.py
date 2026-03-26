@@ -80,13 +80,17 @@ def next_question():
     is_final = (decision == "end")
 
     next_question_text = result.get("next_question")
+    acknowledgment = result.get("acknowledgment", "")
     audio_base64 = ""
     if next_question_text and next_question_text != "INTERVIEW_COMPLETE":
-        audio_base64 = generate_speech(next_question_text)
+        # Combine acknowledgment + question for natural TTS flow
+        spoken_text = f"{acknowledgment} {next_question_text}".strip() if acknowledgment else next_question_text
+        audio_base64 = generate_speech(spoken_text)
 
     return jsonify({
         "success": True,
         "feedback": result.get("feedback"),
+        "acknowledgment": acknowledgment,
         "next_question": next_question_text,
         "decision": decision,
         "audio": audio_base64,
