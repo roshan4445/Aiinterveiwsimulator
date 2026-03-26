@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.segments {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.segment {
+  height: 2px;
+  flex: 1;
+  border-radius: 99px;
+  background: var(--cream-border);
+  transition: background 0.5s var(--ease);
+}
+.segment.filled { background: var(--accent); }
+.segment.active {
+  background: var(--accent);
+  position: relative;
+  overflow: hidden;
+}
+.segment.active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-300);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}

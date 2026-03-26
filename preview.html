@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Interviewer Animation Preview</title>
+<style>
+  body {
+    background-color: #0f172a; /* Slate 900 */
+    color: white;
+    font-family: 'Inter', system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  /* The container of the interviewer profile */
+  .interviewer-widget {
+    background: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    padding: 12px 24px 12px 12px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  /* Profile Avatar */
+  .avatar-container {
+    position: relative;
+    width: 56px;
+    height: 56px;
+  }
+
+  .avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3b82f6; /* Blue 500 */
+    background: #1e293b;
+    z-index: 2;
+    position: relative;
+  }
+
+  /* Subtle pulsing glow behind the avatar when speaking */
+  .avatar-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #3b82f6;
+    z-index: 1;
+    animation: pulse 2s infinite ease-in-out;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+
+  /* Wave Animation */
+  .wave-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+  }
+
+  .bar {
+    width: 4px;
+    background: #3b82f6;
+    border-radius: 4px;
+    animation: wave 1.2s infinite ease-in-out;
+  }
+
+  /* Different delays and max-heights to simulate organic speech */
+  .bar:nth-child(1) { height: 12px; animation-delay: -1.0s; }
+  .bar:nth-child(2) { height: 24px; animation-delay: -0.8s; }
+  .bar:nth-child(3) { height: 30px; animation-delay: -0.6s; }
+  .bar:nth-child(4) { height: 18px; animation-delay: -0.4s; }
+  .bar:nth-child(5) { height: 10px; animation-delay: -0.2s; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  .interviewer-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .status {
+    font-size: 12px;
+    color: #94a3b8; /* Slate 400 */
+    font-weight: 500;
+  }
+
+  .controls {
+    margin-top: 40px;
+    text-align: center;
+  }
+  
+  button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+  <div>
+    <div class="interviewer-widget" id="widget">
+      <div class="avatar-container">
+        <div class="avatar-glow" id="glow"></div>
+        <!-- Placeholder for a professional avatar image -->
+        <img class="avatar" src="https://ui-avatars.com/api/?name=AI&background=0D8ABC&color=fff&size=128" alt="AI Interviewer">
+      </div>
+      
+      <div class="interviewer-info">
+        <span class="name">AI Interviewer</span>
+        <span class="status" id="status-text">Speaking...</span>
+      </div>
+
+      <div class="wave-container" id="waves">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button onclick="toggleSpeaking()">Toggle Speaking State</button>
+    </div>
+  </div>
+
+  <script>
+    let isSpeaking = true;
+    function toggleSpeaking() {
+      isSpeaking = !isSpeaking;
+      
+      const waves = document.getElementById('waves');
+      const glow = document.getElementById('glow');
+      const statusText = document.getElementById('status-text');
+      const widget = document.getElementById('widget');
+
+      if (isSpeaking) {
+        waves.style.display = 'flex';
+        glow.style.display = 'block';
+        statusText.textContent = 'Speaking...';
+        widget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+        widget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.3)';
+      } else {
+        waves.style.display = 'none';
+        glow.style.display = 'none';
+        statusText.textContent = 'Listening / Idle';
+        widget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        widget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.5)';
+      }
+    }
+  </script>
+</body>
+</html>

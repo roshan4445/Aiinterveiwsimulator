@@ -1,0 +1,27 @@
+"""
+AI Adaptive Interviewer - Flask Backend
+Entry point: initializes and runs the Flask application.
+"""
+
+from flask import Flask
+from flask_cors import CORS
+from routes import register_routes
+from config import Config
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    # Globally allow all cross-origin requests for the deployed Render backend
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
+    # Register all API route blueprints
+    register_routes(app)
+
+    return app
+
+# Expose app globally for WSGI servers (Gunicorn, Render, etc.)
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)
