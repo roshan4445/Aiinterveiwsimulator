@@ -1,240 +1,114 @@
-# AI Adaptive Interviewer
-
-A full-stack interview simulator where the AI dynamically adapts questions based on your previous answers and provides detailed, actionable feedback.
-
----
-
-## Features
-
-- **Stage-based progression** — Interviews logically progress through Intro, Resume, Role Core, Pressure, and Final stages
-- **Gradual difficulty scaling** — Questions start easy and dynamically adapt, progressively scaling up in complexity
-- **Structured feedback** — Rating (1–10), strengths, weaknesses, and a model answer per question
-- **Competency Evaluation** — Core final metrics across Technical Knowledge, Communication, Problem Solving, and Confidence
-- **PDF Resume parsing** — AI automatically context-matches your specific projects against the chosen role directly from uploaded resumes
-- **Final performance report** — Overall assessment, hiring recommendation, and personalised study plan
-- **Voice integration** — Features Murf speech synthesis and browser-based speech recognition
-- **Graceful fallback** — Works robustly with fallback objects if underlying AI generation timeout limits are reached
-- **8 interview roles** — Frontend, Backend, Full Stack, DevOps, Data Science, PM, HR, Design
+<div align="center">
+  <h1>🎙️ AI Adaptive Interviewer</h1>
+  <p>A premium, immersive SaaS platform that conducts real-time, highly-adaptive technical and behavioral mock interviews using Groq's low-latency LLM ecosystem.</p>
+</div>
 
 ---
 
-## Project Structure
+## 🌊 Complete Platform Flow
 
-```
+The AI Adaptive Interviewer is built around a seamless, 3-step continuous user journey that mimics a high-stakes professional video interview.
+
+### 1. 🚀 Onboarding & Setup
+The entry point to the application where candidates prepare their testing parameters.
+- **Profile & Resume Parsing**: Users provide their name and optionally upload a PDF resume using a custom drag-and-drop zone. The system extracts this text securely in the browser before feeding it to the AI to heavily personalize the interview questions.
+- **Role Selection**: Users select from 8 distinct engineering and management profiles (Frontend, Backend, Full Stack, DevOps, Data Science, Product Manager, HR, UI/UX).
+- **AI Personality Tuning**: Candidates can configure the specific behavior and strictness of the interviewer: `Friendly 😊`, `Neutral 😐`, or `Strict (FAANG) 😤`.
+
+### 2. 💻 Live Interview Dashboard
+The core simulation environment, structured into a modern 3-column dark-themed HUD.
+- **Left Panel (AI Status)**: Displays the active state of the AI Interviewer (Listening, Analyzing, Thinking, Speaking) combined with glowing, pulsing ring animations to make the interaction feel alive and responsive.
+- **Center Panel (Interaction Stage)**: The primary focus area where the AI dynamically "types out" complex questions using a simulated typing cursor. Candidates can respond via standard text input or utilize the integrated browser microphone for Speech-to-Text.
+- **Right Panel (Real-Time Metrics & Camera)**: 
+  - **Live Camera Feed**: Activates the webcam with a mirror effect to simulate video conferencing software (strictly client-side, no video is recorded).
+  - **Session Timer**: Tracks the ongoing duration of the active interview.
+  - **Pace (WPM)**: Real-time Words Per Minute calculation to train candidates on their speaking speed.
+  - **Filler Word Tracker**: Live semantic tracking of filler words ("um", "uh", "like") with visual green/amber/red warning thresholds.
+- **Conversational Loop**: Once an answer is finalized and submitted, the Flask backend pings the Groq LLM to evaluate it instantly. The AI generates a natural, contextual acknowledgement ("That's an interesting approach to caching...") AND seamlessly chains it into the next adaptive question in a single fluid stream, completely eliminating jarring "feedback" interruptions.
+
+### 3. 📊 Final Assessment & Report
+- **Holistic Evaluation**: Upon manual termination or reaching the question limit, the AI digests the entire session transcript contextually.
+- **Scoring**: The candidate receives a final 1-10 overall grade alongside detailed categorized metric rings (Technical Knowledge, Communication, Problem Solving, Confidence).
+- **Actionable Takeaways**: An extensive, personalized study plan and a simulated hiring recommendation (Hire / No Hire / Lean Hire) is rendered based on the specific nuances of their performance.
+
+---
+
+## 🏗️ Technical Architecture & Stack
+
+### Frontend (User Interface)
+- **Framework**: React 18 / Vite
+- **Styling**: Vanilla CSS Modules implementing a premium, futuristic SaaS dark theme (Glassmorphism, backdrop filters, CSS cubic-bezier animations, flex/grid layouts).
+- **State Management**: Highly complex custom React Hooks (`useInterview.js`) that track history arrays, active stage states, and continuous metric calculations.
+- **Hardware Integration**: Implementations of the native Browser `MediaDevices` API for zero-latency webcam streaming and the `SpeechRecognition` API for voice capture.
+
+### Backend (AI Engine)
+- **Framework**: Python / Flask
+- **LLM Engine**: Groq API (specifically utilizing `llama3-70b-8192` or `llama3-8b-8192` for near-instant inference execution).
+- **PDF Extraction**: `PyPDF2` integration to chunk and extract text cleanly.
+- **Architecture**: Stateless REST API operations. All active conversation history is strictly maintained on the client's state and passed up on subsequent requests to ensure perfect scalability and zero server memory bloat.
+
+---
+
+## 📁 Repository Structure
+
+```text
 ai-interviewer/
 ├── backend/
-│   ├── app.py                  # Flask entry point
-│   ├── config.py               # API keys & settings  ← SET YOUR KEY HERE
-│   ├── routes.py               # Blueprint registration
-│   ├── requirements.txt
-│   ├── .env.example
+│   ├── app.py                  # Flask entry point and CORS configuration
+│   ├── config.py               # API keys, global model parameters, backend settings
+│   ├── requirements.txt        # Python pip dependencies
 │   ├── api/
-│   │   └── interview.py        # /start  /next  /report endpoints
+│   │   └── interview.py        # Controller defining /start, /next, /report logic routes
 │   └── services/
-│       └── groq_service.py     # All Groq LLM calls & prompt engineering
+│       └── groq_service.py     # Core prompt engineering, JSON formatting, Groq orchestration
 │
 └── frontend/
-    ├── index.html
-    ├── vite.config.js
-    ├── package.json
+    ├── index.html              # Core HTML document root
+    ├── vite.config.js          # Vite optimization build configuration
+    ├── package.json            # Node.js dependencies and operational scripts
     └── src/
-        ├── main.jsx
-        ├── App.jsx             # Page router
+        ├── main.jsx            # React strict-mode DOM injection
+        ├── App.jsx             # Top-level Component Router / Theme wrapper
         ├── styles/
-        │   └── global.css
+        │   └── global.css      # CSS Reset, Root Variables (Colors, Spacing, Typography)
         ├── services/
-        │   ├── interviewApi.js # All HTTP calls to Flask
-        │   └── useInterview.js # State machine (custom hook)
-        ├── components/
-        │   ├── ProgressBar.jsx / .module.css
-        │   ├── RatingRing.jsx  / .module.css
-        │   ├── FeedbackCard.jsx / .module.css
-        │   ├── LoadingSpinner.jsx / .module.css
-        │   └── ErrorBanner.jsx  / .module.css
+        │   ├── interviewApi.js # Asynchronous fetch wrappers for proxying the Flask API
+        │   └── useInterview.js # The "Brain" hook managing the active state machine & history
+        ├── components/         # Reusable generic UI Atoms (Progress Bars, Loaders, Rings)
         └── pages/
-            ├── SetupPage.jsx    / .module.css
-            ├── InterviewPage.jsx / .module.css
-            └── ReportPage.jsx   / .module.css
+            ├── SetupPage.jsx          # Step 1: Onboarding, Resume Upload, Parameter Configuration
+            ├── SetupPage.module.css   # - CSS for Setup Page
+            ├── InterviewPage.jsx      # Step 2: 3-column UI, WebRTC Camera, Live Conversational Chat
+            ├── InterviewPage.module.css # - CSS for 3-column HUD and Animations
+            ├── ReportPage.jsx         # Step 3: Final data visualization and breakdown
+            └── ReportPage.module.css  # - CSS for interactive performance charts
 ```
 
 ---
 
-## Quick Start
+## ⚡ Quick Start Deployment
 
-### 1. Get a Groq API Key (free)
-
-1. Visit [https://console.groq.com](https://console.groq.com)
-2. Sign up and create an API key
-3. Copy the key
-
-### 2. Configure the backend
-
-**Option A — environment variable (recommended):**
-```bash
-export GROQ_API_KEY="your_key_here"
-```
-
-**Option B — edit config directly:**
-Open `backend/config.py` and replace `"YOUR_GROQ_API_KEY_HERE"` with your actual key.
-
-### 3. Start the backend
-
+### 1. Configure the Backend Environment
+1. Secure a free API key from [Groq Cloud](https://console.groq.com).
+2. Navigate to the backend directory and set up standard Python dependencies.
 ```bash
 cd backend
 python -m venv venv
 source venv/bin/activate       # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+```
+3. Open `backend/config.py` and replace `"YOUR_GROQ_API_KEY_HERE"` with your actual key, OR export it via terminal: `export GROQ_API_KEY="your_key"`.
+4. Run the server:
+```bash
 python app.py
 ```
+*The Flask core API will successfully mount locally at `http://localhost:5000`*.
 
-Backend runs on `http://localhost:5000`
-
-### 4. Start the frontend
-
+### 2. Configure the Frontend Application
+1. In a split terminal, navigate to the React directory.
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-
-Frontend runs on `http://localhost:5173`
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
----
-
-## API Reference
-
-All endpoints act on POST requests and transport data using JSON objects.
-
-### `POST /api/start`
-Initialise a new interview session and establish the first stage.
-
-**Request:**
-```json
-{ 
-  "role": "Frontend Developer",
-  "name": "Alex",
-  "resume_text": "Passionate Software Developer with..."
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "question": "Hi Alex, could you briefly introduce yourself?",
-  "audio": "...",
-  "question_number": 1,
-  "total_questions": 7,
-  "role": "Frontend Developer",
-  "stage": "intro"
-}
-```
-
----
-
-### `POST /api/next`
-Submit an answer to receive structured feedback, adaptive text, audio output, and dynamic stage routing.
-
-**Request:**
-```json
-{
-  "role": "Frontend Developer",
-  "name": "Alex",
-  "resume_text": "...",
-  "question": "...",
-  "answer": "...",
-  "question_number": 1,
-  "stage": "intro",
-  "history": []
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "feedback": {
-    "rating": 7,
-    "strengths": ["..."],
-    "weaknesses": ["..."],
-    "improved_answer": "...",
-    "tone": "neutral",
-    "focus_area": "experience"
-  },
-  "next_question": "Can you elaborate on...",
-  "decision": "continue",
-  "audio": "...",
-  "is_final": false,
-  "stage": "resume"
-}
-```
-
----
-
-### `POST /api/report`
-Generate the final holistic performance report consisting of all 7 metrics.
-
-**Request:**
-```json
-{
-  "role": "Frontend Developer",
-  "sessions": [
-    {
-      "question": "...",
-      "answer": "...",
-      "questionNumber": 1,
-      "stage": "intro",
-      "feedback": { "rating": 7, "strengths": [], "weaknesses": [], "improved_answer": "" }
-    }
-  ]
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "report": {
-    "overall_assessment": "...",
-    "metrics": {
-      "technical_knowledge": 8,
-      "communication": 7,
-      "problem_solving": 8,
-      "confidence": 6
-    },
-    "top_strengths": [],
-    "areas_to_improve": [],
-    "hiring_recommendation": "Hire",
-    "recommendation_reason": "...",
-    "study_plan": [],
-    "avg_score": 7.3
-  }
-}
-```
-
----
-
-## Configuration
-
-| Variable | File | Description |
-|---|---|---|
-| `GROQ_API_KEY` | `backend/config.py` | Your Groq API key |
-| `GROQ_MODEL` | `backend/config.py` | LLM model (default: `llama3-8b-8192`) |
-| `MAX_QUESTIONS` | `backend/config.py` | Questions per interview (default: 7) |
-| `CORS_ORIGINS` | `backend/config.py` | Allowed frontend origins |
-
----
-
-## How Adaptive Flow Logic Works
-
-The entire flow is powered by a heavily detailed, stateful prompt algorithm structured into the following transitions:
-
-1. **Intro:** Warm-up questions, strictly basic (e.g. "Tell me about yourself").
-2. **Resume:** Tailored context extraction. The AI connects candidate resume points to the exact role applying for.
-3. **Role Core:** Dominates 60% of the interview. The AI forces a structured 3-tier difficulty climb (Basic Definition → Practical Usage → Advanced Design/Optimization).
-4. **Pressure:** Hardcore edge-cases designed to stress-test their fundamental knowledge.
-5. **Final Stage:** Graceful wind-down and interview termination logic natively caught automatically if bounds are exceeded.
-
-**Final assessment computation** takes all historic sessions and extracts competency grading (`Technical Knowledge`, `Communication`, `Problem Solving`, `Confidence`).
+*Vite will compile module graphics and hot-mount the frontend at `http://localhost:5173`*. Open that URL in any modern browser to commence the experience.
